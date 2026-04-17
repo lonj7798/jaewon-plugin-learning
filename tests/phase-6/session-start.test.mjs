@@ -226,7 +226,7 @@ test('should include active course and phase in systemMessage when status has an
         current_course: 'tdd-fundamentals',
         current_chapter: 'chapter-3-mocking',
         current_phase: 'discuss',
-        cycle_iteration: 2,
+        cycle_count: 2,
         last_advance_sig: 'evaluator:verdict.json:1713261600000',
       },
       session: { total_sessions: 5, last_start: new Date().toISOString() },

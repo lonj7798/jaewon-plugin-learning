@@ -91,7 +91,7 @@ function seedStatusJson(projectDir, statusOverrides = {}) {
       current_course: 'tdd-fundamentals',
       current_chapter: 'chapter-3-mocking',
       current_phase: 'discuss',
-      cycle_iteration: 2,
+      cycle_count: 2,
       last_advance_sig: null,
     },
     session: {
@@ -167,7 +167,7 @@ test('should append a timestamped session entry to wiki/log.md when the file exi
         current_course: 'tdd-fundamentals',
         current_chapter: 'chapter-3-mocking',
         current_phase: 'discuss',
-        cycle_iteration: 2,
+        cycle_count: 2,
         last_advance_sig: null,
       },
       session: {

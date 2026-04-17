@@ -13,6 +13,12 @@
  *     evidence: string[],
  *     next_action: 'reread'|'rediscuss'|'merge',
  *     cycle_iteration: integer >= 1 }
+ *
+ * NOTE on cycle_iteration: this is a VERDICT PAYLOAD field — the ordinal
+ * of the cycle that produced this verdict, stamped at verdict emission
+ * time. It is intentionally distinct from `course_state.cycle_count`
+ * (the persisted counter in `.jaewon-learning/status.json`, mutated by
+ * Stop/SubagentStop hooks). Do not conflate the two. See issues #8, #10.
  */
 
 const VERDICT_ENUM = ['incomplete', 'partial', 'mastery'];

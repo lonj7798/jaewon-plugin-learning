@@ -86,7 +86,7 @@ function makeTempProjectWithStatus(phase, overrides = {}) {
       current_course: 'tdd-fundamentals',
       current_chapter: 'chapter-3-mocking',
       current_phase: phase,
-      cycle_iteration: 2,
+      cycle_count: 2,
       last_advance_sig: phase === 'idle' ? null : 'evaluator:verdict.json:1713261600000',
       ...overrides,
     },

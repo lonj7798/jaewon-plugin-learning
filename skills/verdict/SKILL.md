@@ -31,7 +31,7 @@ next action via dict-driven registry. Enforces bounded loop: max 3 iterations of
 - Next-action dispatch is dict-driven (ACTIONS registry); zero switch/case on verdict
 - push_tactic_snapshot loaded from status or rebuilt if hash is stale
 - profiler always spawned after any discuss, regardless of verdict outcome
-- Bounded loop: if cycle_iteration > 3, escalate to learner
+- Bounded loop: if cycle_count > 3, escalate to learner
 - All agent calls use Task() with explicit named arguments
 </Execution_Policy>
 
@@ -60,10 +60,10 @@ ACTIONS = {"merge": run_merge, "rediscuss": run_rediscuss, "reread": run_reread}
 ACTIONS[verdict.next_action](course_slug, chapter)
 ```
 - **merge**: spawn git-manager (merge `course/<slug>` → main, push); spawn dashboard-builder; spawn git-manager (commit + tag milestone).
-- **rediscuss**: update status `phase=discuss, cycle_iteration++`.
+- **rediscuss**: update status `phase=discuss, cycle_count++`.
 - **reread**: update status `phase=read`.
 
 ## Step 6: Bounded Loop Guard
-If `cycle_iteration > 3` for same chapter: print block message — "max 3 iterations
+If `cycle_count > 3` for same chapter: print block message — "max 3 iterations
 reached without Mastery" — and halt, awaiting learner to adjust push-tactics or bar.
 </Steps>
