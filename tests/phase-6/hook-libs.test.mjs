@@ -166,13 +166,13 @@ test('should accept new sig, run updater, and return advanced:true when sig is n
     course_state: {
       last_advance_sig: null,
       current_phase: 'discuss',
-      cycle_iteration: 1,
+      cycle_count: 1,
     },
   };
 
   // Act
   const result = advanceIfNewSig(status, sig, (s) => {
-    s.course_state.cycle_iteration += 1;
+    s.course_state.cycle_count += 1;
     s.course_state.current_phase = 'idle';
   });
 
@@ -181,8 +181,8 @@ test('should accept new sig, run updater, and return advanced:true when sig is n
     'advanceIfNewSig must return advanced:true when sig is novel (different from stored)');
   assert.equal(result.status.course_state.last_advance_sig, sig,
     'returned status must have last_advance_sig set to the new sig');
-  assert.equal(result.status.course_state.cycle_iteration, 2,
-    'mutator must have been applied — cycle_iteration must have incremented');
+  assert.equal(result.status.course_state.cycle_count, 2,
+    'mutator must have been applied — cycle_count must have incremented');
   assert.equal(result.status.course_state.current_phase, 'idle',
     'mutator must have been applied — current_phase must be "idle"');
 });
@@ -196,7 +196,7 @@ test('should reject sig and return advanced:false with reason sig_match when sig
     course_state: {
       last_advance_sig: sig,   // sig already recorded — simulates second hook fire
       current_phase: 'idle',
-      cycle_iteration: 2,
+      cycle_count: 2,
     },
   };
   let mutatorCalled = false;
@@ -213,8 +213,8 @@ test('should reject sig and return advanced:false with reason sig_match when sig
     'reason field must be "sig_match" to distinguish idempotent no-op from other failures');
   assert.equal(mutatorCalled, false,
     'mutator must NOT be invoked on a sig_match no-op');
-  // Assert — status is returned unchanged (cycle_iteration still 2)
-  assert.equal(result.status.course_state.cycle_iteration, 2,
+  // Assert — status is returned unchanged (cycle_count still 2)
+  assert.equal(result.status.course_state.cycle_count, 2,
     'status must be unchanged when sig matches');
 });
 
@@ -228,16 +228,16 @@ test('should return the current state and advanced:false when called concurrentl
 
   // First call — status has null sig (fresh)
   const initialStatus = {
-    course_state: { last_advance_sig: null, cycle_iteration: 1, current_phase: 'discuss' },
+    course_state: { last_advance_sig: null, cycle_count: 1, current_phase: 'discuss' },
   };
   const first = advanceIfNewSig(initialStatus, sig, (s) => {
-    s.course_state.cycle_iteration += 1;
+    s.course_state.cycle_count += 1;
   });
   assert.equal(first.advanced, true, 'first call must advance');
 
   // Second call — uses the status returned by the first call (already has the sig)
   const second = advanceIfNewSig(first.status, sig, (s) => {
-    s.course_state.cycle_iteration += 1;  // must NOT run
+    s.course_state.cycle_count += 1;  // must NOT run
   });
 
   // Assert — second call is a no-op
@@ -245,8 +245,8 @@ test('should return the current state and advanced:false when called concurrentl
     'second call with same sig must return advanced:false (serializable idempotency)');
   assert.equal(second.reason, 'sig_match',
     'reason must be "sig_match" for the duplicate call');
-  assert.equal(second.status.course_state.cycle_iteration, 2,
-    'cycle_iteration must remain at 2 — second mutator must not have fired');
+  assert.equal(second.status.course_state.cycle_count, 2,
+    'cycle_count must remain at 2 — second mutator must not have fired');
 });
 
 // ---------------------------------------------------------------------------
@@ -336,7 +336,7 @@ test('should detect cycle when current_phase is not idle and last_advance_sig is
     course_state: {
       current_phase: 'discuss',
       last_advance_sig: 'evaluator:verdict.json:1713261600000',
-      cycle_iteration: 2,
+      cycle_count: 2,
     },
   };
 
@@ -379,7 +379,7 @@ test('should return inCycle:false when current_phase is idle', async () => {
     course_state: {
       current_phase: 'idle',
       last_advance_sig: null,
-      cycle_iteration: 0,
+      cycle_count: 0,
     },
   };
 
