@@ -2,9 +2,9 @@
 
 A Claude Code plugin that teaches you one learning material at a time. Each chapter runs a small cycle — **read (with QA) → summarize → discuss (sharp, strict)** — and grows a persistent wiki that includes your learner profile so the teacher keeps getting more customized to you.
 
-## Install
+## How to install
 
-Add to your `~/.claude/settings.json`:
+Edit `~/.claude/settings.json`:
 
 ```json
 {
@@ -19,18 +19,35 @@ Add to your `~/.claude/settings.json`:
 }
 ```
 
-Restart Claude Code.
+Restart Claude Code. The plugin registers 8 slash commands and 5 lifecycle hooks.
 
-## First run
+## How to initiate (one-time setup)
+
+The plugin ships with one setup skill: **`/setup-learning-wiki`**. Run it once inside the directory you want to use as your personal learning wiki repo.
 
 ```
-cd ~/your-learning-repo        # empty dir is fine — /setup copies the template in
-# in Claude Code:
-/setup-learning-wiki           # copies wiki-template/, inits .jaewon-learning/, creates main branch
-/new-course ~/path/to/material # or a GitHub URL: researcher crawls, planner drafts outline
-/learn                          # cycle: read → summarize → discuss
-/verdict                        # evaluator + profiler → Mastery/Partial/Incomplete
-/dashboard                      # regenerate static HTML view
+cd ~/my-learning-wiki          # create an empty directory (or cd into an existing one)
+# open Claude Code, then:
+/setup-learning-wiki
+```
+
+What it does:
+1. Copies `wiki-template/` from the plugin install into your directory (wiki/, SCHEMA.md, CLAUDE.md, dashboard/, `.jaewon-learning/` scaffolding).
+2. Creates `.jaewon-learning/settings.json` + `status.json` (state used by hooks + MCP tools).
+3. Runs `git init` + `git checkout -b main` if there's no repo yet (skipped if one already exists).
+4. Verifies the 5 learner-profile pages exist at `wiki/learner/*.md`.
+5. Prints the next command: `/new-course <course-input>`.
+
+Idempotent — safe to re-run; existing files are preserved.
+
+## Daily use
+
+```
+/new-course ~/path/to/material     # or a GitHub URL; researcher crawls, planner drafts outline, you approve
+/learn                              # run one chapter cycle: read → summarize → discuss
+/verdict                            # evaluator + profiler; Mastery merges, Partial loops, Incomplete re-reads
+/resume                             # pick up from last phase if you stopped mid-cycle
+/dashboard                          # regenerate static HTML dashboard
 ```
 
 ## Slash commands
