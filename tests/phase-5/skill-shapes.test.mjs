@@ -108,6 +108,7 @@ const SKILLS = [
   ['wiki-lint',           'wiki-lint'],
   ['dashboard',           'dashboard'],
   ['profile-review',      'profile-review'],
+  ['update-plugin',       'update-plugin'],
 ];
 
 // Skills that must contain push_tactic_snapshot
