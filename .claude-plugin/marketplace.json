@@ -1,0 +1,20 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "jaewon-plugin-learning",
+  "description": "Learning-focused Claude Code plugin — ingest material, grow a persistent wiki, teach one chapter at a time with an adaptive sharp/strict teacher.",
+  "owner": {
+    "name": "Jaewon"
+  },
+  "plugins": [
+    {
+      "name": "jaewon-plugin-learning",
+      "description": "Teach yourself one material at a time. Per-chapter cycle: read -> summarize -> discuss. Wiki grows; teacher adapts via learner profile.",
+      "version": "0.1.0",
+      "author": { "name": "Jaewon" },
+      "source": "./",
+      "category": "learning",
+      "tags": ["learning", "wiki", "teaching", "socratic"]
+    }
+  ],
+  "version": "0.1.0"
+}

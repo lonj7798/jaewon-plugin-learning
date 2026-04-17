@@ -1,0 +1,9 @@
+{
+  "slug": "dynamic-programming",
+  "title": "Dynamic Programming Fundamentals",
+  "source": "https://github.com/example/dp-course",
+  "branch": "course/dynamic-programming",
+  "latest_commit": "a1b2c3d4e5f6",
+  "current_chapter": "knapsack",
+  "current_phase": "discuss"
+}

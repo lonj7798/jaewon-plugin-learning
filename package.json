@@ -1,0 +1,13 @@
+{
+  "name": "jaewon-plugin-learning",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Learning plugin for exploring Claude Code plugin development",
+  "main": "mcp-server/server.js",
+  "scripts": {
+    "test": "node tests/run-all.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0"
+  }
+}

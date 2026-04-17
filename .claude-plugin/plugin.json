@@ -1,0 +1,14 @@
+{
+  "name": "jaewon-plugin-learning",
+  "version": "0.1.0",
+  "description": "Learning plugin for exploring Claude Code plugin development",
+  "author": {
+    "name": "Jaewon"
+  },
+  "license": "MIT",
+  "skills": [],
+  "hooks": "./hooks/hooks.json",
+  "mcpServers": {
+    "learning": "./mcp-server/server.js"
+  }
+}

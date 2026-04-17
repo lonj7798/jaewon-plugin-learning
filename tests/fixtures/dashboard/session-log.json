@@ -1,0 +1,34 @@
+[
+  {
+    "date": "2026-04-16",
+    "course": "dynamic-programming",
+    "chapter": "knapsack",
+    "phase": "discuss",
+    "verdict": null,
+    "notes": "Worked through 0/1 knapsack. Struggled with space optimization."
+  },
+  {
+    "date": "2026-04-14",
+    "course": "dynamic-programming",
+    "chapter": "intro",
+    "phase": "verdict",
+    "verdict": "mastery",
+    "notes": "Mastered memoization fundamentals. Ready to advance."
+  },
+  {
+    "date": "2026-04-12",
+    "course": "dynamic-programming",
+    "chapter": "intro",
+    "phase": "discuss",
+    "verdict": null,
+    "notes": "Good discussion. Needs one more pass on tabulation."
+  },
+  {
+    "date": "2026-04-10",
+    "course": "dynamic-programming",
+    "chapter": "intro",
+    "phase": "read",
+    "verdict": null,
+    "notes": "Completed read phase. Strong conceptual grasp."
+  }
+]

@@ -1,0 +1,8 @@
+node_modules/
+.DS_Store
+*.log
+
+# Runtime state (leaked during test runs or dev-workspace artifacts)
+.jaewon/
+.jaewon-learning/
+.omc/

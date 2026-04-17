@@ -1,0 +1,8 @@
+{
+  "current_course": "dynamic-programming",
+  "current_chapter": "knapsack",
+  "current_phase": "discuss",
+  "cycle_count": 2,
+  "verdict_history": ["partial", "mastery"],
+  "last_advance_sig": "subagent-stop:evaluator:2026-04-14T10:00:00Z"
+}

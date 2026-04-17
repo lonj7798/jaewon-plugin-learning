@@ -1,0 +1,5 @@
+.DS_Store
+.jaewon-learning/sessions/*.tmp
+.jaewon-learning/cache/
+*.swp
+*.swo
