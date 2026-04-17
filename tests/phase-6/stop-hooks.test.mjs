@@ -691,3 +691,58 @@ test('should advance for both evaluator runs when they have distinct sigs (sig-k
     rmSync(projectDir, { recursive: true, force: true });
   }
 });
+
+// ---------------------------------------------------------------------------
+// TEST 11 — Regression #7: stop.mjs nudge must read post-advance course_state
+//
+// Bug: stop.mjs snapshots `cs = status.course_state` BEFORE calling
+// advanceIfNewSig. After a successful advance that transitions current_phase
+// to 'idle', the nudge block still reads the stale cs.current_phase ('discuss')
+// and incorrectly emits a nudge even though the phase is now idle.
+//
+// Fix: after potential advance, derive currentPhase / profilerRun from
+// status.course_state (the possibly-updated reference), not the pre-advance cs.
+// ---------------------------------------------------------------------------
+
+test('should NOT emit a nudge when advance transitions current_phase from discuss to idle', async () => {
+  // Arrange
+  const projectDir = mkdtempSync(join(tmpdir(), 'jaewon-stop-t11-'));
+
+  try {
+    // Seed status with discuss phase + profiler_run:false (nudge-eligible pre-advance)
+    // last_advance_sig is null so the override sig is novel and advance WILL fire
+    seedStatusJson(projectDir, {
+      course_state: {
+        current_phase: 'discuss',
+        cycle_iteration: 1,
+        last_advance_sig: null,
+        profiler_run: false,
+      },
+    });
+
+    // Verdict file must exist so advance guard passes
+    seedVerdictFile(projectDir, { result: 'pass', score: 8 });
+
+    // _test_override_sig is novel (differs from null) → advanceIfNewSig fires,
+    // mutator sets current_phase to 'idle'. Correct code reads post-advance
+    // status.course_state and sees 'idle'; buggy code reads stale cs ('discuss').
+    const payload = {
+      cwd: projectDir,
+      _test_override_sig: 'test-sig-bug7-novel',
+    };
+
+    // Act
+    const result = await runHook(STOP_SCRIPT, payload);
+
+    // Assert — must exit 0
+    assert.equal(result.exitCode, 0,
+      `stop.mjs must exit 0. stderr: ${result.stderr.slice(0, 300)}`);
+
+    // Assert — stdout must be empty (no nudge) because phase advanced to idle
+    const stdout = result.stdout.trim();
+    assert.equal(stdout, '',
+      `stop.mjs must NOT emit a nudge after advancing to idle; got: ${stdout.slice(0, 300)}`);
+  } finally {
+    rmSync(projectDir, { recursive: true, force: true });
+  }
+});

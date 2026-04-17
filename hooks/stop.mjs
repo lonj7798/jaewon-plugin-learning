@@ -90,8 +90,10 @@ async function main() {
   }
 
   // Nudge: if discuss phase is active with a verdict file but profiler not yet run
-  const currentPhase = cs.current_phase;
-  const profilerRun = cs.profiler_run;
+  // Read from status.course_state (not the pre-advance snapshot cs) so a successful
+  // advance to idle is reflected here.
+  const currentPhase = status.course_state?.current_phase;
+  const profilerRun = status.course_state?.profiler_run;
   if (
     currentPhase === 'discuss' &&
     existsSync(vPath) &&
