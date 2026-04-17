@@ -60,6 +60,72 @@ test('creator.md supports multi-file output for dense chapters', async () => {
   );
 });
 
+// ---------------------------------------------------------------------------
+// The reference style is code-understanding-claude/docs — Core Question +
+// universal pattern + per-impl walkthroughs with file:line excerpts + Notice
+// callouts + cross-implementation synthesis. These assertions lock the
+// structural contract that enforces that tutorial-grade style.
+// ---------------------------------------------------------------------------
+
+test('creator.md requires a Core Question opener in Overview', async () => {
+  const src = await readFile(CREATOR_MD, 'utf8');
+  assert.match(
+    src,
+    /Core Question/,
+    'creator.md must require the Overview to open with a Core Question blockquote (matches code-understanding-claude style)'
+  );
+});
+
+test('creator.md requires a universal-pattern section before per-impl walkthroughs', async () => {
+  const src = await readFile(CREATOR_MD, 'utf8');
+  assert.match(
+    src,
+    /(Universal Pattern|universal pattern|pseudocode)/i,
+    'creator.md must require a §1 "Universal Pattern" section that distills the mechanism as pseudocode'
+  );
+  assert.match(
+    src,
+    /inevitable|consequence of the substrate/i,
+    'creator.md must require the "why this pattern is inevitable" framing (pattern follows from substrate, not design choice)'
+  );
+});
+
+test('creator.md requires mermaid diagrams for structural mechanisms', async () => {
+  const src = await readFile(CREATOR_MD, 'utf8');
+  assert.match(
+    src,
+    /mermaid/i,
+    'creator.md must require mermaid flowchart/sequence diagrams in §1 when the mechanism is structural'
+  );
+});
+
+test('creator.md requires file:line citations in code excerpts', async () => {
+  const src = await readFile(CREATOR_MD, 'utf8');
+  assert.match(
+    src,
+    /file:line|lines? [A-Z0-9]+-[A-Z0-9]+|line range/i,
+    'creator.md must require file:line citations on every code excerpt (matches reference style)'
+  );
+});
+
+test('creator.md requires "Notice..." callouts after each excerpt', async () => {
+  const src = await readFile(CREATOR_MD, 'utf8');
+  assert.match(
+    src,
+    /"?Notice\b/,
+    'creator.md must require a "Notice ..." callout after each excerpt to surface non-obvious design choices'
+  );
+});
+
+test('creator.md requires a cross-implementation synthesis section', async () => {
+  const src = await readFile(CREATOR_MD, 'utf8');
+  assert.match(
+    src,
+    /(synthesis|invariant.*variant|cross-impl)/i,
+    'creator.md must require a synthesis section comparing invariant (substrate-forced) vs variant (design-choice) across implementations'
+  );
+});
+
 test('skills/learn/SKILL.md passes crawl_manifest_path to creator', async () => {
   const src = await readFile(LEARN_MD, 'utf8');
   assert.match(
