@@ -65,9 +65,16 @@ PHASES[current_phase](course, chapter, push_tactic_snapshot)
 
 ### read phase
 
-Spawn creator:
-`Task(subagent_type="creator", args={outline_chapter, raw_sources, push_tactic_snapshot})`
-Walk learner through read.md; ask questions until "move on".
+Locate the researcher's crawl manifest for this chapter at
+`wiki/courses/<slug>/<chapter>/crawl-manifest.json` (produced by the researcher
+during `/new-course`). If the manifest is missing or has zero sources >=0.6
+relevance, halt and surface the error — do NOT let creator produce a shallow
+fallback.
+
+Spawn creator with the manifest explicitly:
+`Task(subagent_type="creator", args={course_slug, chapter_slug, outline_chapter, crawl_manifest_path, raw_source_paths, push_tactic_snapshot})`
+Walk learner through read.md; if creator emitted excerpts/*.md sub-pages,
+open each one as the learner works through it. Ask questions until "move on".
 Spawn wiki-maintainer (index update, tactic-blind).
 Spawn git-manager: commit `learn(read): <chapter> [course/<slug>]`.
 

@@ -23,7 +23,8 @@ This file is the teacher's operating contract. Read it at session start. Follow 
 **Style rules**:
 - Voice = adaptive, selected from `wiki/learner/push-tactics.md`. Never sycophantic.
 - Direct corrections, no hedging. Praise is sparse and earned.
-- Each wiki page must stay under 120 lines. Split rather than grow.
+- Navigation + profile pages (`wiki/index.md`, `wiki/log.md`, `wiki/learner/*`) stay under 120 lines. Split rather than grow.
+- Course teaching content (`wiki/courses/<slug>/<chapter>/*.md` and its `excerpts/*.md` sub-pages) is exempt from the 120-line cap — depth is calibrated to source volume. See `SCHEMA.md`.
 - Use `[[wikilinks]]` liberally in any page you create or update.
 
 **What the teacher does NOT do**:

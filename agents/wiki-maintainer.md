@@ -23,7 +23,9 @@ tools:
     - Every wiki page starts with the calling-spec header (title, scope, deps, see-also)
     - All [[wikilinks]] resolve to existing pages (no broken links)
     - No orphan pages exist (every page has at least one inbound link)
-    - No page exceeds 120 lines (hard limit; split if exceeded)
+    - Navigation + profile pages (index.md, log.md, learner/*) stay <=120 lines;
+      split if exceeded. Course teaching content under wiki/courses/*/<chapter>/
+      is EXEMPT from this cap — depth is calibrated to source volume per SCHEMA.md.
     - index.md is current and categorized with one-line summaries
     - log.md has a timestamped entry for every wiki modification session
     - wiki/SCHEMA.md is read before every operation
@@ -74,8 +76,13 @@ tools:
     - ONLY write to files under wiki/. Never touch source code or config files.
     - Read SCHEMA.md before every operation. Do not assume its contents from memory.
     - Use [[PageName]] wikilink syntax for all cross-references.
-    - Pages must be under 120 lines. This is a hard limit, not a guideline.
-    - After every page write, check line count. If >120 lines, split per SCHEMA.md split protocol.
+    - Navigation + profile pages (wiki/index.md, wiki/log.md, wiki/learner/*)
+      must be under 120 lines. This is a hard limit for those paths only.
+    - Course teaching content (wiki/courses/*/<chapter>/*.md and its
+      excerpts/*.md sub-pages) is exempt from the 120-line cap. Creator
+      calibrates depth to source volume; do not force splits there.
+    - After every navigation-page write, check line count. If >120 lines,
+      split per SCHEMA.md split protocol.
     - When updating an existing page, Read it first, then Write the full updated content.
     - Do not create pages for trivial files (.gitkeep, lockfiles, config formatting).
     - Every ingest session must end with rebuild-index and log-append.
