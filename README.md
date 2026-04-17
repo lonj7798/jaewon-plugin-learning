@@ -4,31 +4,30 @@ A Claude Code plugin that teaches you one learning material at a time. Each chap
 
 ## How to install
 
-Edit `~/.claude/settings.json`:
+```bash
+# 1. Add the marketplace
+claude plugin marketplace add lonj7798/jaewon-plugin-learning
 
-```json
-{
-  "extraKnownMarketplaces": {
-    "jaewon-plugin-learning": {
-      "source": { "source": "github", "repo": "lonj7798/jaewon-plugin-learning" }
-    }
-  },
-  "enabledPlugins": {
-    "jaewon-plugin-learning@jaewon-plugin-learning": true
-  }
-}
+# 2. Install the plugin
+claude plugin install jaewon-plugin-learning@jaewon-plugin-learning
+
+# 3. Restart Claude Code
 ```
 
-Restart Claude Code. The plugin registers 8 slash commands and 5 lifecycle hooks.
+After restart, the plugin registers 8 slash commands and 5 lifecycle hooks.
 
 ## How to initiate (one-time setup)
 
-The plugin ships with one setup skill: **`/setup-learning-wiki`**. Run it once inside the directory you want to use as your personal learning wiki repo.
+The plugin ships with one setup skill: **`/jaewon-plugin-learning:setup-learning-wiki`**. Run it once inside the directory you want to use as your personal learning wiki repo.
+
+```bash
+cd ~/my-learning-wiki          # create an empty directory (or cd into an existing one)
+```
+
+Then in Claude Code:
 
 ```
-cd ~/my-learning-wiki          # create an empty directory (or cd into an existing one)
-# open Claude Code, then:
-/setup-learning-wiki
+/jaewon-plugin-learning:setup-learning-wiki
 ```
 
 What it does:
@@ -42,12 +41,14 @@ Idempotent — safe to re-run; existing files are preserved.
 
 ## Daily use
 
+All skills are namespaced under `/jaewon-plugin-learning:`.
+
 ```
-/new-course ~/path/to/material     # or a GitHub URL; researcher crawls, planner drafts outline, you approve
-/learn                              # run one chapter cycle: read → summarize → discuss
-/verdict                            # evaluator + profiler; Mastery merges, Partial loops, Incomplete re-reads
-/resume                             # pick up from last phase if you stopped mid-cycle
-/dashboard                          # regenerate static HTML dashboard
+/jaewon-plugin-learning:new-course ~/path/to/material   # or GitHub URL; researcher crawls, planner drafts outline
+/jaewon-plugin-learning:learn                            # one chapter cycle: read → summarize → discuss
+/jaewon-plugin-learning:verdict                          # evaluator + profiler; Mastery merges, Partial loops
+/jaewon-plugin-learning:resume                           # pick up from last phase
+/jaewon-plugin-learning:dashboard                        # regenerate static HTML dashboard
 ```
 
 ## Slash commands
