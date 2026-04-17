@@ -42,10 +42,10 @@ function getVerdictPath(projectDir) {
   return join(projectDir, '.jaewon-learning', 'evaluator', 'verdict.json');
 }
 
-/** Mutator for evaluator completion: advance cycle_iteration, transition phase. */
+/** Mutator for evaluator completion: advance cycle_count, transition phase. */
 function evaluatorMutator(status) {
   const cs = status.course_state || {};
-  cs.cycle_iteration = (cs.cycle_iteration || 0) + 1;
+  cs.cycle_count = (cs.cycle_count || 0) + 1;
   cs.current_phase = 'idle';
   status.course_state = cs;
 }

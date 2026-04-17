@@ -41,10 +41,10 @@ function verdictPath(projectDir) {
   return join(projectDir, '.jaewon-learning', 'evaluator', 'verdict.json');
 }
 
-/** Mutator: advance cycle_iteration and transition phase to idle. */
+/** Mutator: advance cycle_count and transition phase to idle. */
 function advanceEvaluatorMutator(status) {
   const cs = status.course_state || {};
-  cs.cycle_iteration = (cs.cycle_iteration || 0) + 1;
+  cs.cycle_count = (cs.cycle_count || 0) + 1;
   cs.current_phase = 'idle';
   status.course_state = cs;
 }

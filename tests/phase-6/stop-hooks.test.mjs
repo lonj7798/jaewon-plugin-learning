@@ -746,3 +746,98 @@ test('should NOT emit a nudge when advance transitions current_phase from discus
     rmSync(projectDir, { recursive: true, force: true });
   }
 });
+
+// ---------------------------------------------------------------------------
+// TEST 12 — Regression #8a: stop.mjs must increment cycle_count (not cycle_iteration)
+//
+// Bug: advanceEvaluatorMutator in stop.mjs bumps cs.cycle_iteration, but the
+// canonical course_state schema field is cycle_count. This causes the schema
+// field to never increment and an extra stray cycle_iteration key to appear.
+//
+// Fix: change cs.cycle_iteration → cs.cycle_count in advanceEvaluatorMutator.
+// ---------------------------------------------------------------------------
+
+test('should increment cycle_count (not cycle_iteration) in course_state after stop.mjs advances', async () => {
+  // Arrange
+  const projectDir = mkdtempSync(join(tmpdir(), 'jaewon-stop-t12-'));
+
+  try {
+    seedStatusJson(projectDir, {
+      course_state: {
+        current_phase: 'discuss',
+        cycle_count: 2,           // canonical field — must be incremented
+        last_advance_sig: null,   // null → override sig is novel → advance fires
+      },
+    });
+    seedVerdictFile(projectDir, { result: 'pass', score: 7 });
+
+    const payload = {
+      cwd: projectDir,
+      _test_override_sig: 'test-sig-bug8-stop',
+    };
+
+    // Act
+    const result = await runHook(STOP_SCRIPT, payload);
+    assert.equal(result.exitCode, 0,
+      `stop.mjs must exit 0. stderr: ${result.stderr.slice(0, 300)}`);
+
+    // Assert — cycle_count must have incremented
+    const updated = readStatusJson(projectDir);
+    assert.equal(updated.course_state.cycle_count, 3,
+      `cycle_count must be incremented to 3. Got: ${updated.course_state.cycle_count}`);
+
+    // Assert — cycle_iteration must NOT have been bumped by the advance mutator.
+    // (DEFAULT_STATUS seeds cycle_iteration:0; the mutator must leave it unchanged.)
+    const ciStop = updated.course_state.cycle_iteration ?? 0;
+    assert.ok(ciStop <= 0,
+      `cycle_iteration must NOT be incremented by the advance mutator; got: ${ciStop}`);
+  } finally {
+    rmSync(projectDir, { recursive: true, force: true });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// TEST 13 — Regression #8b: subagent-stop.mjs must increment cycle_count (not cycle_iteration)
+//
+// Same bug in evaluatorMutator inside subagent-stop.mjs.
+// ---------------------------------------------------------------------------
+
+test('should increment cycle_count (not cycle_iteration) in course_state after subagent-stop.mjs evaluator advance', async () => {
+  // Arrange
+  const projectDir = mkdtempSync(join(tmpdir(), 'jaewon-subagent-t13-'));
+
+  try {
+    seedStatusJson(projectDir, {
+      course_state: {
+        current_phase: 'discuss',
+        cycle_count: 5,           // canonical field — must be incremented
+        last_advance_sig: null,   // null → override sig is novel → advance fires
+      },
+    });
+    seedVerdictFile(projectDir, { result: 'pass', score: 9 });
+
+    const payload = {
+      cwd: projectDir,
+      agent_name: 'evaluator',
+      _test_override_sig: 'test-sig-bug8-subagent',
+    };
+
+    // Act
+    const result = await runHook(SUBAGENT_STOP_SCRIPT, payload);
+    assert.equal(result.exitCode, 0,
+      `subagent-stop.mjs must exit 0. stderr: ${result.stderr.slice(0, 300)}`);
+
+    // Assert — cycle_count must have incremented
+    const updated = readStatusJson(projectDir);
+    assert.equal(updated.course_state.cycle_count, 6,
+      `cycle_count must be incremented to 6. Got: ${updated.course_state.cycle_count}`);
+
+    // Assert — cycle_iteration must NOT have been bumped by the advance mutator.
+    // (DEFAULT_STATUS seeds cycle_iteration:0; the mutator must leave it unchanged.)
+    const ciSubagent = updated.course_state.cycle_iteration ?? 0;
+    assert.ok(ciSubagent <= 0,
+      `cycle_iteration must NOT be incremented by the advance mutator; got: ${ciSubagent}`);
+  } finally {
+    rmSync(projectDir, { recursive: true, force: true });
+  }
+});
