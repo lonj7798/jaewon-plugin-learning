@@ -244,15 +244,25 @@ for (const [filename, stem] of AGENTS) {
     }
   });
 
-  // Check 6 — file is under 120 lines
-  test(`${stem}: should be under 120 lines`, async () => {
+  // Check 6 — file is within its per-agent line cap
+  //
+  // Default cap: 120 lines (keeps agent prompts LLM-context-friendly).
+  // Exception: creator.md has a 200-line cap because its contract is
+  // structurally richer than the other 8 agents — it must specify
+  // Core Question, universal pattern, per-impl walkthroughs,
+  // mermaid diagrams, file:line citations, Notice callouts, and
+  // invariant/variant synthesis, all in one prompt. The other agents
+  // produce narrower artifacts and fit comfortably under 120.
+  test(`${stem}: should be within its line cap`, async () => {
     // Arrange
     const { lines } = await loadAgent(filename);
+    const PER_AGENT_CAP = { 'creator': 200 };
+    const cap = PER_AGENT_CAP[stem] ?? 120;
 
     // Assert
     assert.ok(
-      lines <= 120,
-      `${filename}: file has ${lines} lines, exceeds 120-line cap`
+      lines <= cap,
+      `${filename}: file has ${lines} lines, exceeds ${cap}-line cap`
     );
   });
 
