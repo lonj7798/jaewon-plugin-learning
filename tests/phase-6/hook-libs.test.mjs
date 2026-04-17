@@ -352,6 +352,25 @@ test('should detect cycle when current_phase is not idle and last_advance_sig is
     'detectCycle must include a reason string');
 });
 
+// Test 11b — cycle_detect_active_phase_no_sig_still_inCycle (regression #6)
+test('should return inCycle:true when current_phase is active (read) even when last_advance_sig is null', async () => {
+  // Arrange
+  const { detectCycle } = await import(`${HOOKS_LIB}/cycle-detect.mjs`);
+  const status = {
+    course_state: {
+      current_phase: 'read',
+      last_advance_sig: null,   // sig not yet set — normal state right after phase entry
+    },
+  };
+
+  // Act
+  const result = detectCycle(status);
+
+  // Assert — inCycle must be true based on current_phase alone (sig gating is the bug)
+  assert.equal(result.inCycle, true,
+    'detectCycle must return inCycle:true when current_phase is "read" regardless of last_advance_sig being null');
+});
+
 // Test 11 — cycle_detect_detectCycle_idle_when_no_course
 test('should return inCycle:false when current_phase is idle', async () => {
   // Arrange

@@ -12,7 +12,6 @@
  *
  *   Cycle detected when:
  *     status.course_state.current_phase !== 'idle'
- *     AND status.course_state.last_advance_sig is truthy
  *   No cycle when:
  *     current_phase === 'idle' (regardless of sig)
  */
@@ -32,14 +31,9 @@ export function detectCycle(status) {
   }
 
   const phase = courseState.current_phase ?? 'idle';
-  const sig = courseState.last_advance_sig;
 
   if (phase === 'idle') {
     return { inCycle: false, phase: null, reason: 'phase_idle' };
-  }
-
-  if (!sig) {
-    return { inCycle: false, phase: null, reason: 'no_advance_sig' };
   }
 
   return { inCycle: true, phase, reason: 'active_cycle' };
