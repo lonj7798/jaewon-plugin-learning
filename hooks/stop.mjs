@@ -41,10 +41,10 @@ function verdictPath(projectDir) {
   return join(projectDir, '.jaewon-learning', 'evaluator', 'verdict.json');
 }
 
-/** Mutator: advance cycle_iteration and transition phase to idle. */
+/** Mutator: advance cycle_count and transition phase to idle. */
 function advanceEvaluatorMutator(status) {
   const cs = status.course_state || {};
-  cs.cycle_iteration = (cs.cycle_iteration || 0) + 1;
+  cs.cycle_count = (cs.cycle_count || 0) + 1;
   cs.current_phase = 'idle';
   status.course_state = cs;
 }
@@ -90,8 +90,10 @@ async function main() {
   }
 
   // Nudge: if discuss phase is active with a verdict file but profiler not yet run
-  const currentPhase = cs.current_phase;
-  const profilerRun = cs.profiler_run;
+  // Read from status.course_state (not the pre-advance snapshot cs) so a successful
+  // advance to idle is reflected here.
+  const currentPhase = status.course_state?.current_phase;
+  const profilerRun = status.course_state?.profiler_run;
   if (
     currentPhase === 'discuss' &&
     existsSync(vPath) &&

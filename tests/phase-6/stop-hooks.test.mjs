@@ -105,7 +105,7 @@ function seedStatusJson(projectDir, statusOverrides = {}) {
     version: 1,
     course_state: {
       current_phase: 'idle',
-      cycle_iteration: 0,
+      cycle_count: 0,
       last_advance_sig: null,
       current_course: null,
       current_chapter: null,
@@ -150,7 +150,7 @@ test('should exit 0 when stop.mjs receives a minimal valid Stop event with no ac
 
   try {
     seedStatusJson(projectDir, {
-      course_state: { current_phase: 'idle', cycle_iteration: 0, last_advance_sig: null },
+      course_state: { current_phase: 'idle', cycle_count: 0, last_advance_sig: null },
     });
     const payload = { cwd: projectDir };
 
@@ -216,13 +216,19 @@ test('should emit a systemMessage nudge containing "verdict" when discuss phase 
     seedStatusJson(projectDir, {
       course_state: {
         current_phase: 'discuss',
-        cycle_iteration: 1,
+        cycle_count: 1,
         last_advance_sig: 'evaluator:verdict.json:1713261600000',
         profiler_run: false,
       },
     });
     seedVerdictFile(projectDir);
-    const payload = { cwd: projectDir };
+    // Pass _test_override_sig matching the seeded last_advance_sig so
+    // advanceIfNewSig is idempotent (sig_match) — we want to observe the
+    // nudge behavior on the seeded discuss state, not on a post-advance state.
+    const payload = {
+      cwd: projectDir,
+      _test_override_sig: 'evaluator:verdict.json:1713261600000',
+    };
 
     // Act
     const result = await runHook(STOP_SCRIPT, payload);
@@ -265,11 +271,11 @@ test('should emit a systemMessage nudge containing "verdict" when discuss phase 
 // TEST 4 — subagent-stop.mjs advances cycle state when evaluator agent completes
 //
 // When agent_name is 'evaluator' and a verdict file exists, subagent-stop.mjs
-// must advance status.course_state.cycle_iteration and set last_advance_sig
+// must advance status.course_state.cycle_count and set last_advance_sig
 // to the expected sha1 hash pattern.
 // ---------------------------------------------------------------------------
 
-test('should advance course_state.cycle_iteration and set last_advance_sig when evaluator agent completes', async () => {
+test('should advance course_state.cycle_count and set last_advance_sig when evaluator agent completes', async () => {
   // Arrange
   const projectDir = mkdtempSync(join(tmpdir(), 'jaewon-subagent-t4-'));
 
@@ -277,7 +283,7 @@ test('should advance course_state.cycle_iteration and set last_advance_sig when 
     seedStatusJson(projectDir, {
       course_state: {
         current_phase: 'discuss',
-        cycle_iteration: 1,
+        cycle_count: 1,
         last_advance_sig: null,
       },
     });
@@ -307,8 +313,8 @@ test('should advance course_state.cycle_iteration and set last_advance_sig when 
     );
 
     assert.ok(
-      updated.course_state.cycle_iteration > 1,
-      `cycle_iteration must have been incremented beyond 1. Got: ${updated.course_state.cycle_iteration}`
+      updated.course_state.cycle_count > 1,
+      `cycle_count must have been incremented beyond 1. Got: ${updated.course_state.cycle_count}`
     );
   } finally {
     rmSync(projectDir, { recursive: true, force: true });
@@ -366,7 +372,7 @@ test('should never emit decision:"block" from stop.mjs or subagent-stop.mjs unde
 
   try {
     seedStatusJson(projectDir, {
-      course_state: { current_phase: 'discuss', cycle_iteration: 3, last_advance_sig: 'sig-xyz' },
+      course_state: { current_phase: 'discuss', cycle_count: 3, last_advance_sig: 'sig-xyz' },
     });
 
     const scenarios = [
@@ -468,10 +474,10 @@ test('should reference advanceIfNewSig in both stop.mjs and subagent-stop.mjs so
 // TEST 8 — Race guard case 1: subagent_stop_advances_once_even_if_stop_fires_first
 //
 // Simulate: Stop hook fires FIRST for evaluator completion — writes sig S1,
-// advances cycle_iteration from 1 to 2.
+// advances cycle_count from 1 to 2.
 // Then SubagentStop fires with the same evaluator + same verdict file.
 // SubagentStop must observe last_advance_sig === S1 and return a no-op
-// (cycle_iteration stays at 2, last_advance_sig unchanged).
+// (cycle_count stays at 2, last_advance_sig unchanged).
 //
 // Implementation: seed status.json with last_advance_sig already set (simulating
 // Stop having already run), then invoke subagent-stop.mjs and assert no advance.
@@ -485,7 +491,7 @@ test('should not double-advance when subagent-stop fires after stop has already 
     // Create verdict file — mtime will be used to build sig
     const verdictPath = seedVerdictFile(projectDir, { result: 'pass', score: 8 });
 
-    // Simulate: Stop already fired and wrote sig S1 + advanced cycle_iteration to 2
+    // Simulate: Stop already fired and wrote sig S1 + advanced cycle_count to 2
     // We build a plausible sig string matching what the implementation would compute.
     // The exact hash is implementation-defined, but we pre-seed a non-null sig string
     // so that subagent-stop sees "sig already recorded" and skips advance.
@@ -493,7 +499,7 @@ test('should not double-advance when subagent-stop fires after stop has already 
     seedStatusJson(projectDir, {
       course_state: {
         current_phase: 'idle',     // already advanced — phase moved to idle
-        cycle_iteration: 2,         // already advanced from 1 to 2 by Stop
+        cycle_count: 2,         // already advanced from 1 to 2 by Stop
         last_advance_sig: simulatedSig,
       },
     });
@@ -509,7 +515,7 @@ test('should not double-advance when subagent-stop fires after stop has already 
     //
     // If the hook does NOT support sig override and recomputes a different sig
     // from the real verdict file mtime, the test demonstrates the race condition
-    // — cycle_iteration would increment to 3, which must be caught as a failure.
+    // — cycle_count would increment to 3, which must be caught as a failure.
 
     const payload = {
       cwd: projectDir,
@@ -531,8 +537,8 @@ test('should not double-advance when subagent-stop fires after stop has already 
     const updated = readStatusJson(projectDir);
 
     assert.equal(
-      updated.course_state.cycle_iteration, 2,
-      `cycle_iteration must remain at 2 (no double-advance). Got: ${updated.course_state.cycle_iteration}`
+      updated.course_state.cycle_count, 2,
+      `cycle_count must remain at 2 (no double-advance). Got: ${updated.course_state.cycle_count}`
     );
 
     assert.equal(
@@ -548,7 +554,7 @@ test('should not double-advance when subagent-stop fires after stop has already 
 // TEST 9 — Race guard case 2: stop_advances_once_even_if_subagent_stop_fires_first
 //
 // Mirror of test 8. SubagentStop fires FIRST — writes sig S1, advances
-// cycle_iteration from 1 to 2. Stop fires SECOND with same sig S1.
+// cycle_count from 1 to 2. Stop fires SECOND with same sig S1.
 // Stop must observe last_advance_sig === S1 and skip advance.
 // ---------------------------------------------------------------------------
 
@@ -565,7 +571,7 @@ test('should not double-advance when stop fires after subagent-stop has already 
     seedStatusJson(projectDir, {
       course_state: {
         current_phase: 'idle',
-        cycle_iteration: 2,         // already advanced
+        cycle_count: 2,         // already advanced
         last_advance_sig: simulatedSig,
       },
     });
@@ -589,8 +595,8 @@ test('should not double-advance when stop fires after subagent-stop has already 
     const updated = readStatusJson(projectDir);
 
     assert.equal(
-      updated.course_state.cycle_iteration, 2,
-      `cycle_iteration must remain at 2 (no double-advance by Stop). Got: ${updated.course_state.cycle_iteration}`
+      updated.course_state.cycle_count, 2,
+      `cycle_count must remain at 2 (no double-advance by Stop). Got: ${updated.course_state.cycle_count}`
     );
 
     assert.equal(
@@ -611,7 +617,7 @@ test('should not double-advance when stop fires after subagent-stop has already 
 // S1 != S2; both advances succeed because the sigs are distinct.
 //
 // Simulated by invoking subagent-stop twice with different override sigs and
-// asserting cycle_iteration reaches 3.
+// asserting cycle_count reaches 3.
 // ---------------------------------------------------------------------------
 
 test('should advance for both evaluator runs when they have distinct sigs (sig-keyed guard, not time-keyed)', async () => {
@@ -623,7 +629,7 @@ test('should advance for both evaluator runs when they have distinct sigs (sig-k
     seedStatusJson(projectDir, {
       course_state: {
         current_phase: 'discuss',
-        cycle_iteration: 1,
+        cycle_count: 1,
         last_advance_sig: null,
       },
     });
@@ -645,8 +651,8 @@ test('should advance for both evaluator runs when they have distinct sigs (sig-k
 
     const afterRun1 = readStatusJson(projectDir);
     assert.ok(
-      afterRun1.course_state.cycle_iteration >= 2,
-      `cycle_iteration must have advanced to at least 2 after first run. Got: ${afterRun1.course_state.cycle_iteration}`
+      afterRun1.course_state.cycle_count >= 2,
+      `cycle_count must have advanced to at least 2 after first run. Got: ${afterRun1.course_state.cycle_count}`
     );
     assert.equal(
       afterRun1.course_state.last_advance_sig, 'distinct-sig-S1-run1',
@@ -672,8 +678,8 @@ test('should advance for both evaluator runs when they have distinct sigs (sig-k
 
     // Assert — second run must also advance (because sig is distinct from S1)
     assert.ok(
-      afterRun2.course_state.cycle_iteration >= 3,
-      `cycle_iteration must have advanced to at least 3 after second run with distinct sig. Got: ${afterRun2.course_state.cycle_iteration}`
+      afterRun2.course_state.cycle_count >= 3,
+      `cycle_count must have advanced to at least 3 after second run with distinct sig. Got: ${afterRun2.course_state.cycle_count}`
     );
 
     assert.equal(
@@ -687,6 +693,152 @@ test('should advance for both evaluator runs when they have distinct sigs (sig-k
       afterRun2.course_state.last_advance_sig,
       'The two sigs must be distinct — guard is sig-keyed, not time-keyed'
     );
+  } finally {
+    rmSync(projectDir, { recursive: true, force: true });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// TEST 11 — Regression #7: stop.mjs nudge must read post-advance course_state
+//
+// Bug: stop.mjs snapshots `cs = status.course_state` BEFORE calling
+// advanceIfNewSig. After a successful advance that transitions current_phase
+// to 'idle', the nudge block still reads the stale cs.current_phase ('discuss')
+// and incorrectly emits a nudge even though the phase is now idle.
+//
+// Fix: after potential advance, derive currentPhase / profilerRun from
+// status.course_state (the possibly-updated reference), not the pre-advance cs.
+// ---------------------------------------------------------------------------
+
+test('should NOT emit a nudge when advance transitions current_phase from discuss to idle', async () => {
+  // Arrange
+  const projectDir = mkdtempSync(join(tmpdir(), 'jaewon-stop-t11-'));
+
+  try {
+    // Seed status with discuss phase + profiler_run:false (nudge-eligible pre-advance)
+    // last_advance_sig is null so the override sig is novel and advance WILL fire
+    seedStatusJson(projectDir, {
+      course_state: {
+        current_phase: 'discuss',
+        cycle_count: 1,
+        last_advance_sig: null,
+        profiler_run: false,
+      },
+    });
+
+    // Verdict file must exist so advance guard passes
+    seedVerdictFile(projectDir, { result: 'pass', score: 8 });
+
+    // _test_override_sig is novel (differs from null) → advanceIfNewSig fires,
+    // mutator sets current_phase to 'idle'. Correct code reads post-advance
+    // status.course_state and sees 'idle'; buggy code reads stale cs ('discuss').
+    const payload = {
+      cwd: projectDir,
+      _test_override_sig: 'test-sig-bug7-novel',
+    };
+
+    // Act
+    const result = await runHook(STOP_SCRIPT, payload);
+
+    // Assert — must exit 0
+    assert.equal(result.exitCode, 0,
+      `stop.mjs must exit 0. stderr: ${result.stderr.slice(0, 300)}`);
+
+    // Assert — stdout must be empty (no nudge) because phase advanced to idle
+    const stdout = result.stdout.trim();
+    assert.equal(stdout, '',
+      `stop.mjs must NOT emit a nudge after advancing to idle; got: ${stdout.slice(0, 300)}`);
+  } finally {
+    rmSync(projectDir, { recursive: true, force: true });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// TEST 12 — Regression #8a: stop.mjs increments course_state.cycle_count
+//
+// Bug was: advanceEvaluatorMutator bumped cs.cycle_iteration, but the
+// canonical course_state schema field is cycle_count. Result: schema field
+// never incremented and a stray cycle_iteration key appeared.
+//
+// Fix: advanceEvaluatorMutator now increments cs.cycle_count.
+// ---------------------------------------------------------------------------
+
+test('regression #8a: stop.mjs increments course_state.cycle_count (not stray cycle_iteration)', async () => {
+  // Arrange
+  const projectDir = mkdtempSync(join(tmpdir(), 'jaewon-stop-t12-'));
+
+  try {
+    seedStatusJson(projectDir, {
+      course_state: {
+        current_phase: 'discuss',
+        cycle_count: 2,           // canonical field — must be incremented
+        last_advance_sig: null,   // null → override sig is novel → advance fires
+      },
+    });
+    seedVerdictFile(projectDir, { result: 'pass', score: 7 });
+
+    const payload = {
+      cwd: projectDir,
+      _test_override_sig: 'test-sig-bug8-stop',
+    };
+
+    // Act
+    const result = await runHook(STOP_SCRIPT, payload);
+    assert.equal(result.exitCode, 0,
+      `stop.mjs must exit 0. stderr: ${result.stderr.slice(0, 300)}`);
+
+    // Assert — cycle_count must have incremented
+    const updated = readStatusJson(projectDir);
+    assert.equal(updated.course_state.cycle_count, 3,
+      `cycle_count must be incremented to 3. Got: ${updated.course_state.cycle_count}`);
+
+    // Assert — no stray cycle_iteration key introduced into course_state by the mutator
+    assert.equal(updated.course_state.cycle_iteration, undefined,
+      `course_state must not contain stray cycle_iteration field; got: ${updated.course_state.cycle_iteration}`);
+  } finally {
+    rmSync(projectDir, { recursive: true, force: true });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// TEST 13 — Regression #8b: subagent-stop.mjs increments course_state.cycle_count
+//
+// Same bug + fix in subagent-stop.mjs evaluatorMutator.
+// ---------------------------------------------------------------------------
+
+test('regression #8b: subagent-stop.mjs increments course_state.cycle_count (not stray cycle_iteration)', async () => {
+  // Arrange
+  const projectDir = mkdtempSync(join(tmpdir(), 'jaewon-subagent-t13-'));
+
+  try {
+    seedStatusJson(projectDir, {
+      course_state: {
+        current_phase: 'discuss',
+        cycle_count: 5,           // canonical field — must be incremented
+        last_advance_sig: null,   // null → override sig is novel → advance fires
+      },
+    });
+    seedVerdictFile(projectDir, { result: 'pass', score: 9 });
+
+    const payload = {
+      cwd: projectDir,
+      agent_name: 'evaluator',
+      _test_override_sig: 'test-sig-bug8-subagent',
+    };
+
+    // Act
+    const result = await runHook(SUBAGENT_STOP_SCRIPT, payload);
+    assert.equal(result.exitCode, 0,
+      `subagent-stop.mjs must exit 0. stderr: ${result.stderr.slice(0, 300)}`);
+
+    // Assert — cycle_count must have incremented
+    const updated = readStatusJson(projectDir);
+    assert.equal(updated.course_state.cycle_count, 6,
+      `cycle_count must be incremented to 6. Got: ${updated.course_state.cycle_count}`);
+
+    // Assert — no stray cycle_iteration key introduced into course_state by the mutator
+    assert.equal(updated.course_state.cycle_iteration, undefined,
+      `course_state must not contain stray cycle_iteration field; got: ${updated.course_state.cycle_iteration}`);
   } finally {
     rmSync(projectDir, { recursive: true, force: true });
   }

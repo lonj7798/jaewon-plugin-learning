@@ -65,7 +65,7 @@ const DEFAULT_STATUS = {
   },
   course_state: {
     current_phase: 'idle',
-    cycle_iteration: 0,
+    cycle_count: 0,
     last_advance_sig: null,
   },
   blocked: [],
