@@ -14,13 +14,28 @@ wiki/
 
 ## Page Size Limit
 
-Pages MUST stay under 120 lines (~4K tokens). No exceptions.
+**Navigation + profile pages** (`wiki/index.md`, `wiki/log.md`, `wiki/learner/*`)
+MUST stay under 120 lines (~4K tokens). These are retrieval surfaces; brevity
+is correct.
 
-When a page exceeds 120 lines:
+**Course teaching content** (`wiki/courses/<slug>/<chapter>/*.md`) is exempt.
+Depth is calibrated to source volume, not a fixed budget — a chapter with five
+dense primary sources should produce a substantive walkthrough, not a 60-line
+summary. The creator agent emits read.md (and optional
+`excerpts/<source>.md` sub-pages for very dense chapters).
+
+When a **navigation** page exceeds 120 lines:
 1. Create a hub page (`topic.md`) with header + summary + links to sub-pages.
 2. Split content into sub-pages (`topic-overview.md`, `topic-detail.md`, etc.).
 3. Each sub-page stays under 120 lines.
 4. Update `index.md` with new sub-pages.
+
+When **course teaching content** would exceed ~1500 lines in a single read.md:
+- Creator emits a compact read.md index (Overview + one paragraph per source +
+  wikilinks + Questions) and full walkthroughs under
+  `wiki/courses/<slug>/<chapter>/excerpts/<source-slug>.md`.
+- The index still passes read-header schema validation; sub-pages can be
+  arbitrarily long as needed to carry the teaching content.
 
 ## Page Header (Required)
 
